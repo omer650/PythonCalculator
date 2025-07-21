@@ -1,0 +1,143 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "🌐 Run Flask Web Calculator",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/app.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "FLASK_APP": "app.py",
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "1",
+                "FLASK_RUN_PORT": "5001"
+            },
+            "justMyCode": true,
+            "purpose": [
+                "debug-in-terminal"
+            ],
+            "args": []
+        },
+        {
+            "name": "🚀 Run CLI Calculator Demo",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "🧪 Debug All Calculator Tests",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "test_calculator.py",
+                "-v",
+                "--tb=short"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "🔍 Debug Current Test File",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "${file}",
+                "-v",
+                "--tb=short"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "📊 Debug Specific Test (Add Method)",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "test_calculator.py::TestCalculator::test_add",
+                "-v",
+                "--tb=short"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "🐍 Debug Calculator Implementation",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/calculator.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "🔧 Debug Current Python File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": true
+        },
+        {
+            "name": "🎯 Debug Flask with Breakpoints",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/app.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "FLASK_APP": "app.py",
+                "FLASK_ENV": "development",
+                "FLASK_DEBUG": "1",
+                "FLASK_RUN_PORT": "5001"
+            },
+            "args": [],
+            "justMyCode": false,
+            "stopOnEntry": false
+        },
+        {
+            "name": "🏗️ Student Practice Mode",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": true,
+            "stopOnEntry": true
+        }
+    ]
+}

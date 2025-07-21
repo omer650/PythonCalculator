@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧮 Python Calculator Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .calculator-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px 0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+
+        .result-display {
+            background: #fff;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .result-success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .result-error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .history-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+        }
+
+        .history-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .no-history {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .operation-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .single-input {
+            display: none;
+        }
+
+        .single-input.show {
+            display: block;
+        }
+
+        .status-indicator {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status-not-implemented {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .status-working {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 Python Calculator Practice</h1>
+            <p>Implement methods in calculator.py and test them here!</p>
+        </div>
+
+        <div class="main-content">
+            <div class="calculator-section">
+                <div class="section-title">
+                    🔢 Calculator
+                </div>
+
+                <div class="input-group">
+                    <label for="operation">Operation:</label>
+                    <select id="operation" onchange="updateInputs()">
+                        <option value="add">➕ Addition</option>
+                        <option value="subtract">➖ Subtraction</option>
+                        <option value="multiply">✖️ Multiplication</option>
+                        <option value="divide">➗ Division</option>
+                        <option value="power">🔢 Power</option>
+                        <option value="square_root">√ Square Root</option>
+                        <option value="factorial">❗ Factorial</option>
+                        <option value="percentage">📊 Percentage</option>
+                    </select>
+                </div>
+
+                <div class="input-group" id="input1-group">
+                    <label for="num1" id="num1-label">First Number:</label>
+                    <input type="number" id="num1" step="any" placeholder="Enter first number">
+                </div>
+
+                <div class="input-group" id="input2-group">
+                    <label for="num2" id="num2-label">Second Number:</label>
+                    <input type="number" id="num2" step="any" placeholder="Enter second number">
+                </div>
+
+                <button class="btn btn-primary" onclick="calculate()">🚀 Calculate</button>
+
+                <div id="result" class="result-display">
+                    Ready to calculate! 🎯
+                </div>
+
+                <div id="status" class="status-indicator status-not-implemented">
+                    💡 Start implementing methods in calculator.py
+                </div>
+            </div>
+
+            <div class="history-section">
+                <div class="section-title">
+                    📋 Calculation History
+                    <button class="btn btn-secondary" onclick="clearHistory()" style="width: auto; margin-left: auto; padding: 8px 15px; font-size: 0.9rem;">
+                        🗑️ Clear
+                    </button>
+                </div>
+
+                <div id="history" class="history-list">
+                    <div class="no-history">No calculations yet. Start calculating!</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateInputs() {
+            const operation = document.getElementById('operation').value;
+            const input2Group = document.getElementById('input2-group');
+            const num1Label = document.getElementById('num1-label');
+            const num2Label = document.getElementById('num2-label');
+            const num1 = document.getElementById('num1');
+            const num2 = document.getElementById('num2');
+
+            // Reset inputs
+            num1.value = '';
+            num2.value = '';
+
+            if (operation === 'square_root') {
+                input2Group.style.display = 'none';
+                num1Label.textContent = 'Number:';
+                num1.placeholder = 'Enter number to find square root';
+            } else if (operation === 'factorial') {
+                input2Group.style.display = 'none';
+                num1Label.textContent = 'Integer:';
+                num1.placeholder = 'Enter non-negative integer';
+                num1.step = '1';
+            } else if (operation === 'percentage') {
+                input2Group.style.display = 'block';
+                num1Label.textContent = 'Total Value:';
+                num2Label.textContent = 'Percentage:';
+                num1.placeholder = 'Enter total value';
+                num2.placeholder = 'Enter percentage (e.g., 25 for 25%)';
+            } else if (operation === 'power') {
+                input2Group.style.display = 'block';
+                num1Label.textContent = 'Base:';
+                num2Label.textContent = 'Exponent:';
+                num1.placeholder = 'Enter base number';
+                num2.placeholder = 'Enter exponent';
+            } else {
+                input2Group.style.display = 'block';
+                num1Label.textContent = 'First Number:';
+                num2Label.textContent = 'Second Number:';
+                num1.placeholder = 'Enter first number';
+                num2.placeholder = 'Enter second number';
+            }
+
+            // Reset step for number inputs
+            if (operation !== 'factorial') {
+                num1.step = 'any';
+            }
+        }
+
+        async function calculate() {
+            const operation = document.getElementById('operation').value;
+            const num1 = document.getElementById('num1').value;
+            const num2 = document.getElementById('num2').value;
+            const resultDiv = document.getElementById('result');
+            const statusDiv = document.getElementById('status');
+
+            // Validate inputs
+            if (!num1 && operation !== 'factorial') {
+                resultDiv.className = 'result-display result-error';
+                resultDiv.textContent = '❌ Please enter the first number';
+                return;
+            }
+
+            if (!num2 && ['add', 'subtract', 'multiply', 'divide', 'power', 'percentage'].includes(operation)) {
+                resultDiv.className = 'result-display result-error';
+                resultDiv.textContent = '❌ Please enter the second number';
+                return;
+            }
+
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        operation: operation,
+                        num1: num1,
+                        num2: num2
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultDiv.className = 'result-display result-success';
+                    resultDiv.textContent = `✅ Result: ${data.result}`;
+                    statusDiv.className = 'status-indicator status-working';
+                    statusDiv.textContent = `🎉 ${operation} method is working!`;
+                    updateHistory(data.history);
+                } else {
+                    resultDiv.className = 'result-display result-error';
+                    resultDiv.textContent = `❌ ${data.error}`;
+                    
+                    if (data.error.includes('not implemented')) {
+                        statusDiv.className = 'status-indicator status-not-implemented';
+                        statusDiv.textContent = `💡 Implement ${operation}() method in calculator.py`;
+                    }
+                }
+            } catch (error) {
+                resultDiv.className = 'result-display result-error';
+                resultDiv.textContent = `❌ Network error: ${error.message}`;
+            }
+        }
+
+        async function clearHistory() {
+            try {
+                const response = await fetch('/clear', {
+                    method: 'POST',
+                });
+
+                if (response.ok) {
+                    document.getElementById('history').innerHTML = '<div class="no-history">No calculations yet. Start calculating!</div>';
+                }
+            } catch (error) {
+                console.error('Error clearing history:', error);
+            }
+        }
+
+        function updateHistory(history) {
+            const historyDiv = document.getElementById('history');
+            
+            if (!history || history.length === 0) {
+                historyDiv.innerHTML = '<div class="no-history">No calculations yet. Start calculating!</div>';
+                return;
+            }
+
+            historyDiv.innerHTML = history.map(item => 
+                `<div class="history-item">${item}</div>`
+            ).join('');
+        }
+
+        // Allow Enter key to calculate
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('num1').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calculate();
+            });
+            document.getElementById('num2').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') calculate();
+            });
+            
+            // Load initial history
+            fetch('/history')
+                .then(response => response.json())
+                .then(data => updateHistory(data.history))
+                .catch(error => console.error('Error loading history:', error));
+        });
+
+        // Initialize inputs on page load
+        updateInputs();
+    </script>
+</body>
+</html>
