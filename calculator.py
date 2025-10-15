@@ -10,15 +10,16 @@ class Calculator:
         self.history = []
 
     def add(self, a, b):
-        """Add two numbers"""
-        # TODO: Implement addition
-        # Hint: result = a + b, then add to history
-        return a + b
+        result = a + b
+        self.history.append(f"{a} + {b} = {result}")
+        return result
 
     def subtract(self, a, b):
         """Subtract b from a"""
         # TODO: Implement subtraction
-        pass
+        result = a - b
+        self.history.append(f"{a} - {b} = {result}")
+        return result
 
     def multiply(self, a, b):
         """Multiply two numbers"""
