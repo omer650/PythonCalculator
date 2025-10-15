@@ -10,30 +10,31 @@ class Calculator:
         self.history = []
 
     def add(self, a, b):
+        # TODO: Implement addition
         result = a + b
         self.history.append(f"{a} + {b} = {result}")
         return result
 
     def subtract(self, a, b):
-        """Subtract b from a"""
         # TODO: Implement subtraction
         result = a - b
         self.history.append(f"{a} - {b} = {result}")
         return result
 
     def multiply(self, a, b):
-        """Multiply two numbers"""
         # TODO: Implement multiplication
-        pass
+        result = a * b
+        self.history.append(f"{a} × {b} = {result}")
+        return result
 
     def divide(self, a, b):
+        # TODO: Implement division
         if b == 0:
             raise ValueError("Cannot divide by zero")
         result = a / b
         self.history.append(f"{a} ÷ {b} = {result}")
         return result
-
-    def get_history(self):
+    def get_history(self):     
         """Return calculation history"""
         return self.history
 
