@@ -26,10 +26,11 @@ class Calculator:
         pass
 
     def divide(self, a, b):
-        """Divide a by b"""
-        # TODO: Implement division
-        # Remember to check for division by zero!
-        pass
+        if b == 0:
+            raise ValueError("Cannot divide by zero")
+        result = a / b
+        self.history.append(f"{a} ÷ {b} = {result}")
+        return result
 
     def get_history(self):
         """Return calculation history"""
