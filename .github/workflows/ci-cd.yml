@@ -45,69 +45,30 @@ jobs:
       contents: read
       packages: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Check Docker Hub credentials
-        id: check-docker
-        run: |
-          if [ -z "${{ secrets.DOCKER_USERNAME }}" ] || [ -z "${{ secrets.DOCKER_TOKEN }}" ]; then
-            echo "Docker Hub credentials not set, skipping..."
-            echo "skip=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          echo "skip=false" >> $GITHUB_OUTPUT
-
-      - name: Determine image tag
-        id: meta
-        run: |
-          if [[ "${{ github.ref }}" =~ ^refs/tags/v.* ]]; then
-            # Version tag exists, use it
-            TAG=${GITHUB_REF#refs/tags/}
-            echo "tag=${TAG}" >> $GITHUB_OUTPUT
-            echo "is_version_tag=true" >> $GITHUB_OUTPUT
-            echo "docker_tags=latest,${TAG}" >> $GITHUB_OUTPUT
-          else
-            # No tag (branch push), use latest only
-            TAG="latest"
-            echo "tag=${TAG}" >> $GITHUB_OUTPUT
-            echo "is_version_tag=false" >> $GITHUB_OUTPUT
-            echo "docker_tags=latest" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Log in to Docker Hub
-        if: steps.check-docker.outputs.skip != 'true'
-        uses: docker/login-action@v3
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
-
-      - name: Prepare Docker tags
-        if: steps.check-docker.outputs.skip != 'true'
-        id: prepare-tags
+      - name: Determine tag
+        id: tag
         run: |
-          TAGS="${env.IMAGE_NAME}:latest"
-          if [[ "${{ steps.meta.outputs.is_version_tag }}" == "true" ]]; then
-            TAGS="${TAGS}"$'\n'"${env.IMAGE_NAME}:${{ steps.meta.outputs.tag }}"
+          if [[ "${{ github.ref }}" =~ ^refs/tags/v.* ]]; then
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
           fi
-          echo "tags<<EOF" >> $GITHUB_OUTPUT
-          echo "$TAGS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Build and push to Docker Hub
-        if: steps.check-docker.outputs.skip != 'true'
-        uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile
           push: true
-          platforms: linux/amd64
-          tags: ${{ steps.prepare-tags.outputs.tags }}
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+        continue-on-error: false
 
   artifactory:
     name: Build and publish to Artifactory
