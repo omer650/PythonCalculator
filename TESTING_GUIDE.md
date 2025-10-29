@@ -61,12 +61,10 @@ curl http://localhost:5001/health
 
 ## Required GitHub Secrets (for Docker publishing)
 
-**Docker Hub Configuration:**
+**Docker Hub Configuration (Both as Secrets):**
 
-1. **Add Variable (Settings → Variables):**
+1. **Add Secret (Settings → Secrets):**
    - `DOCKER_USERNAME`: Your Docker Hub username
-
-2. **Add Secret (Settings → Secrets):**
    - `DOCKER_TOKEN`: Your Docker Hub Personal Access Token (not password)
 
 **Generate Docker Hub Token:**

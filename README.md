@@ -133,13 +133,16 @@ GitHub Actions workflow (`.github/workflows/ci-cd.yml`) that:
 #### Required GitHub Secrets:
 
 **For Docker Hub:**
-- `DOCKER_USERNAME` – **Environment Variable** – your Docker Hub username (Settings → Variables)
-- `DOCKER_TOKEN` – **Secret** – Docker Hub Personal Access Token (Settings → Secrets, not password!)
+- `DOCKER_USERNAME` – **Secret** – your Docker Hub username
+- `DOCKER_TOKEN` – **Secret** – Docker Hub Personal Access Token (not password!)
 
 **Setup:**
-1. **Add `DOCKER_USERNAME` as Variable:**
-   - GitHub → Settings → Secrets and variables → Actions → Variables
-   - Add: `DOCKER_USERNAME` = your Docker Hub username
+1. **Add `DOCKER_USERNAME` as Secret:**
+   - GitHub → Settings → Secrets and variables → Actions → Secrets
+   - Click "New repository secret"
+   - Name: `DOCKER_USERNAME`
+   - Value: Your Docker Hub username (e.g., `morbargig`)
+   - Click "Add secret"
 
 2. **Add `DOCKER_TOKEN` as Secret:**
    - GitHub → Settings → Secrets and variables → Actions → Secrets

@@ -188,7 +188,7 @@ act push --secret-file .act-secrets --job docker-hub
 
 | Name | Type | Docker Hub | Artifactory | Render | Required |
 |------|------|-----------|-------------|--------|----------|
-| `DOCKER_USERNAME` | Variable | ✅ | ❌ | ❌ | For Docker Hub |
+| `DOCKER_USERNAME` | Secret | ✅ | ❌ | ❌ | For Docker Hub |
 | `DOCKER_TOKEN` | Secret | ✅ | ❌ | ❌ | For Docker Hub |
 | `ARTIFACTORY_URL` | ❌ | ✅ | ❌ | Optional |
 | `ARTIFACTORY_REPO` | ❌ | ✅ | ❌ | Optional |

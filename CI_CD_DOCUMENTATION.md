@@ -139,16 +139,16 @@ This project implements a comprehensive CI/CD (Continuous Integration/Continuous
 #### Required GitHub Configuration:
 
 **Docker Hub:**
-- `DOCKER_USERNAME` - **Variable** - Docker Hub username (Settings → Variables)
-- `DOCKER_TOKEN` - **Secret** - Docker Hub Personal Access Token (Settings → Secrets, not password!)
+- `DOCKER_USERNAME` - **Secret** - Docker Hub username
+- `DOCKER_TOKEN` - **Secret** - Docker Hub Personal Access Token (not password!)
 
 **Setup Instructions:**
-1. **Add `DOCKER_USERNAME` Variable:**
-   - GitHub → Settings → Secrets and variables → Actions → Variables tab
-   - Click "New repository variable"
+1. **Add `DOCKER_USERNAME` Secret:**
+   - GitHub → Settings → Secrets and variables → Actions → Secrets tab
+   - Click "New repository secret"
    - Name: `DOCKER_USERNAME`
    - Value: Your Docker Hub username
-   - Click "Add variable"
+   - Click "Add secret"
 
 2. **Add `DOCKER_TOKEN` Secret:**
    - GitHub → Settings → Secrets and variables → Actions → Secrets tab
@@ -299,8 +299,8 @@ This project implements a comprehensive CI/CD (Continuous Integration/Continuous
   - Variables: `${{ vars.VARIABLE_NAME }}`
 - **Important:** Use Personal Access Tokens, never passwords
   - Docker Hub: 
-    - `DOCKER_USERNAME` → **Variable** (not sensitive, can be public)
-    - `DOCKER_TOKEN` → **Secret** (Personal Access Token, sensitive)
+    - `DOCKER_USERNAME` → **Secret** (your Docker Hub username)
+    - `DOCKER_TOKEN` → **Secret** (Personal Access Token)
   - Tokens can be rotated/revoked without affecting account password
   - Better security: scope-specific permissions, expiration support
 
