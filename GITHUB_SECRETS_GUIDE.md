@@ -10,12 +10,11 @@ These are **required** if you want to publish Docker images to Docker Hub:
 
 | Name | Type | Description | How to Get |
 |------|------|-------------|------------|
-| `DOCKER_USERNAME` | **Environment Variable** | Your Docker Hub username | Your Docker Hub account username |
+| `DOCKER_USERNAME` | **Secret** | Your Docker Hub username | Your Docker Hub account username |
 | `DOCKER_TOKEN` | **Secret** | Docker Hub Personal Access Token | See instructions below ⬇️ |
 
 **Important:**
-- `DOCKER_USERNAME` → Set as **Variable** (Settings → Secrets and variables → Actions → Variables)
-- `DOCKER_TOKEN` → Set as **Secret** (Settings → Secrets and variables → Actions → Secrets)
+- Both `DOCKER_USERNAME` and `DOCKER_TOKEN` → Set as **Secrets** (Settings → Secrets and variables → Actions → Secrets)
 
 ### 🟡 Optional (for Artifactory publishing)
 
@@ -37,17 +36,17 @@ These secrets are **optional** - the workflow will skip Render deployment if not
 | `RENDER_API_KEY` | Render.com API key | See instructions below ⬇️ |
 | `RENDER_SERVICE_ID` | Render service ID | See instructions below ⬇️ |
 
-## 🔧 How to Add Secrets and Variables
+## 🔧 How to Add Secrets
 
-### Adding Docker Hub Username (Variable)
+### Adding Docker Hub Username (Secret)
 
 1. Go to your GitHub repository
 2. Click **Settings** → **Secrets and variables** → **Actions**
-3. Click **Variables** tab
-4. Click **New repository variable**
+3. Click **Secrets** tab
+4. Click **New repository secret**
 5. Name: `DOCKER_USERNAME`
 6. Value: Your Docker Hub username (e.g., `morbargig`)
-7. Click **Add variable**
+7. Click **Add secret**
 
 ### Adding Docker Hub Token (Secret)
 
@@ -115,7 +114,7 @@ Get these from your organization's Artifactory administrator:
 - Docker publishing requires setup below
 
 ### Docker Hub Publishing
-- [ ] `DOCKER_USERNAME` - **Variable** - Your Docker Hub username
+- [ ] `DOCKER_USERNAME` - **Secret** - Your Docker Hub username
 - [ ] `DOCKER_TOKEN` - **Secret** - Personal Access Token (not password!)
 
 ### Full Setup (All Features)
@@ -125,12 +124,12 @@ Get these from your organization's Artifactory administrator:
 
 ## 🎯 What Each Secret Does
 
-### `DOCKER_USERNAME` (Variable) & `DOCKER_TOKEN` (Secret)
+### `DOCKER_USERNAME` & `DOCKER_TOKEN` (Both Secrets)
 - **Used by:** `docker-hub` job
 - **When:** On pushes to `main`/`master` branches or version tags (`v1.0.0`, etc.)
 - **Purpose:** Authenticates to Docker Hub and pushes images
 - **Required:** Yes, for Docker Hub publishing
-- **Note:** `DOCKER_USERNAME` is a variable (not secret), `DOCKER_TOKEN` is a secret
+- **Note:** Both are stored as **Secrets** (Settings → Secrets)
 
 ### `ARTIFACTORY_*` secrets
 - **Used by:** `artifactory` job
