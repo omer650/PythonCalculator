@@ -78,3 +78,31 @@ def divide(self, a, b):
 ## ✅ Done!
 
 When all methods work, the calculator will be complete! 🎉
+
+## 🐳 Docker
+
+Build the image locally:
+
+```bash
+docker build -t calculator-app:local .
+```
+
+Run the container:
+
+```bash
+docker run --rm -p 5001:5001 calculator-app:local
+```
+
+### CI/CD
+
+This repo includes GitHub Actions to:
+- Run tests on pushes/PRs
+- Build and publish Docker image to Docker Hub on tags like `v1.2.3`
+
+Configure repository secrets:
+- `DOCKER_USERNAME` – your Docker Hub username
+- `DOCKER_PASSWORD` – Docker Hub access token or password
+
+By default, images are pushed as:
+- `${DOCKER_USERNAME}/calculator-app:latest`
+- `${DOCKER_USERNAME}/calculator-app:vX.Y.Z` (tagged releases)
