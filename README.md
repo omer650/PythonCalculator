@@ -134,7 +134,14 @@ GitHub Actions workflow (`.github/workflows/ci-cd.yml`) that:
 
 **For Docker Hub:**
 - `DOCKER_USERNAME` – your Docker Hub username
-- `DOCKER_PASSWORD` – Docker Hub access token or password
+- `DOCKER_TOKEN` – Docker Hub access token (required - use Personal Access Token, not password)
+
+**How to get Docker Hub token:**
+1. Go to [Docker Hub](https://hub.docker.com) → Account Settings → Security
+2. Click "New Access Token"
+3. Give it a name (e.g., "GitHub Actions")
+4. Copy the token immediately (it won't be shown again)
+5. Set permissions: "Read, Write & Delete" for publishing images
 
 **For Artifactory (optional):**
 - `ARTIFACTORY_URL` – Artifactory registry URL (e.g., `https://your-artifactory.com`)
@@ -165,7 +172,14 @@ GitLab CI/CD pipeline (`.gitlab-ci.yml`) that includes:
 
 **For Docker Hub:**
 - `DOCKERHUB_USERNAME` – Docker Hub username
-- `DOCKERHUB_TOKEN` – Docker Hub access token
+- `DOCKERHUB_TOKEN` – Docker Hub Personal Access Token (required - not password)
+
+**How to get Docker Hub token:**
+1. Go to [Docker Hub](https://hub.docker.com) → Account Settings → Security
+2. Click "New Access Token"
+3. Give it a name (e.g., "GitLab CI/CD")
+4. Copy the token immediately
+5. Set permissions: "Read, Write & Delete"
 
 **For Artifactory:**
 - `ARTIFACTORY_URL` – Artifactory registry URL

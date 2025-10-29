@@ -36,7 +36,7 @@ brew install act
 act push --job test --container-architecture linux/amd64
 
 # Test with a mock Docker secret (for docker job testing)
-act push --job docker --secret DOCKER_USERNAME=testuser --secret DOCKER_PASSWORD=testpass --container-architecture linux/amd64
+act push --job docker --secret DOCKER_USERNAME=testuser --secret DOCKER_TOKEN=testtoken --container-architecture linux/amd64
 ```
 
 ### Option 3: Test Docker Build Locally
@@ -64,7 +64,14 @@ curl http://localhost:5001/health
 Add these in: https://github.com/bargigsoftwar/GitExercise/settings/secrets/actions
 
 - `DOCKER_USERNAME`: Your Docker Hub username
-- `DOCKER_PASSWORD`: Your Docker Hub access token
+- `DOCKER_TOKEN`: Your Docker Hub Personal Access Token (not password)
+
+**Generate Docker Hub Token:**
+1. [Docker Hub](https://hub.docker.com) → Account Settings → Security
+2. Click "New Access Token"
+3. Name it (e.g., "GitHub Actions")
+4. Copy token (shown only once)
+5. Permissions: "Read, Write & Delete"
 
 ## Testing the Different Triggers
 
@@ -118,7 +125,7 @@ If you have a GitLab repository:
 
 2. **Set GitLab CI/CD Variables:**
    - Go to: `Settings → CI/CD → Variables`
-   - Add: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`
+   - Add: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN` (Personal Access Token, not password)
    - Add (optional): `ARTIFACTORY_URL`, `ARTIFACTORY_REPO`, `ARTIFACTORY_USERNAME`, `ARTIFACTORY_PASSWORD`
 
 3. **Watch the pipeline:**

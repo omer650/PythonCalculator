@@ -138,7 +138,17 @@ This project implements a comprehensive CI/CD (Continuous Integration/Continuous
 
 #### Required GitHub Secrets:
 - `DOCKER_USERNAME`: Docker Hub username
-- `DOCKER_PASSWORD`: Docker Hub access token or password
+- `DOCKER_TOKEN`: Docker Hub Personal Access Token (required - not password)
+
+**How to generate Docker Hub token:**
+1. Go to [Docker Hub](https://hub.docker.com) → Sign in
+2. Click your profile → Account Settings → Security tab
+3. Click "New Access Token"
+4. Name the token (e.g., "GitHub Actions CI/CD")
+5. Set permissions: "Read, Write & Delete"
+6. Click "Generate"
+7. **Copy the token immediately** - it won't be shown again
+8. Store it as `DOCKER_TOKEN` secret in GitHub
 - `ARTIFACTORY_URL`: Artifactory registry URL (optional)
 - `ARTIFACTORY_REPO`: Artifactory repository name (optional)
 - `ARTIFACTORY_USERNAME`: Artifactory username (optional)
@@ -274,11 +284,18 @@ This project implements a comprehensive CI/CD (Continuous Integration/Continuous
 - Stored in: Repository Settings → Secrets and variables → Actions
 - Access: Encrypted at rest, masked in logs
 - Usage: Referenced as `${{ secrets.SECRET_NAME }}`
+- **Important:** Use Personal Access Tokens, never passwords
+  - Docker Hub: Use `DOCKER_TOKEN` (Personal Access Token)
+  - Tokens can be rotated/revoked without affecting account password
+  - Better security: scope-specific permissions, expiration support
 
 **GitLab:**
 - Stored in: Settings → CI/CD → Variables
 - Access: Can be protected (only available in protected branches)
 - Usage: Referenced as `$VARIABLE_NAME` or `${VARIABLE_NAME}`
+- **Important:** Use Personal Access Tokens for Docker Hub (`DOCKERHUB_TOKEN`)
+  - Never use account passwords in CI/CD
+  - Tokens are more secure and can be individually managed
 
 ## Testing and Validation
 
@@ -346,7 +363,8 @@ This project implements a comprehensive CI/CD (Continuous Integration/Continuous
 
 ### Issue: Docker Hub Login Fails
 - **Cause:** Invalid credentials or expired token
-- **Solution:** Regenerate Docker Hub access token and update secrets
+- **Solution:** Regenerate Docker Hub Personal Access Token (not password) and update `DOCKER_TOKEN` secret
+- **Note:** Always use tokens, never passwords. Tokens can be revoked/recreated without changing your account password
 
 ### Issue: Artifactory Publish Skipped
 - **Cause:** Missing Artifactory credentials
@@ -430,6 +448,7 @@ This project implements a comprehensive CI/CD (Continuous Integration/Continuous
   - `docker.{company}.local`
 - Login: Uses organization-specific credentials
 - Format: `{registry-url}/{repository}/{image}`
+
 
 ### 6. render.yaml
 **Location:** `/render.yaml`  
