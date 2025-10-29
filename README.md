@@ -133,15 +133,20 @@ GitHub Actions workflow (`.github/workflows/ci-cd.yml`) that:
 #### Required GitHub Secrets:
 
 **For Docker Hub:**
-- `DOCKER_USERNAME` – your Docker Hub username
-- `DOCKER_TOKEN` – Docker Hub access token (required - use Personal Access Token, not password)
+- `DOCKER_USERNAME` – **Environment Variable** – your Docker Hub username (Settings → Variables)
+- `DOCKER_TOKEN` – **Secret** – Docker Hub Personal Access Token (Settings → Secrets, not password!)
 
-**How to get Docker Hub token:**
-1. Go to [Docker Hub](https://hub.docker.com) → Account Settings → Security
-2. Click "New Access Token"
-3. Give it a name (e.g., "GitHub Actions")
-4. Copy the token immediately (it won't be shown again)
-5. Set permissions: "Read, Write & Delete" for publishing images
+**Setup:**
+1. **Add `DOCKER_USERNAME` as Variable:**
+   - GitHub → Settings → Secrets and variables → Actions → Variables
+   - Add: `DOCKER_USERNAME` = your Docker Hub username
+
+2. **Add `DOCKER_TOKEN` as Secret:**
+   - GitHub → Settings → Secrets and variables → Actions → Secrets
+   - Go to [Docker Hub](https://hub.docker.com) → Account Settings → Security
+   - Click "New Access Token", name it (e.g., "GitHub Actions")
+   - Set permissions: "Read, Write & Delete"
+   - Copy token and add as `DOCKER_TOKEN` secret
 
 **For Artifactory (optional):**
 - `ARTIFACTORY_URL` – Artifactory registry URL (e.g., `https://your-artifactory.com`)

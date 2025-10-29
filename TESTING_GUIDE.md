@@ -61,10 +61,13 @@ curl http://localhost:5001/health
 
 ## Required GitHub Secrets (for Docker publishing)
 
-Add these in: https://github.com/bargigsoftwar/GitExercise/settings/secrets/actions
+**Docker Hub Configuration:**
 
-- `DOCKER_USERNAME`: Your Docker Hub username
-- `DOCKER_TOKEN`: Your Docker Hub Personal Access Token (not password)
+1. **Add Variable (Settings → Variables):**
+   - `DOCKER_USERNAME`: Your Docker Hub username
+
+2. **Add Secret (Settings → Secrets):**
+   - `DOCKER_TOKEN`: Your Docker Hub Personal Access Token (not password)
 
 **Generate Docker Hub Token:**
 1. [Docker Hub](https://hub.docker.com) → Account Settings → Security

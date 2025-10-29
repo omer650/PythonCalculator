@@ -136,19 +136,29 @@ This project implements a comprehensive CI/CD (Continuous Integration/Continuous
    - Purpose: Publishes images to enterprise Artifactory registry
    - **Note:** Skips automatically if credentials not configured
 
-#### Required GitHub Secrets:
-- `DOCKER_USERNAME`: Docker Hub username
-- `DOCKER_TOKEN`: Docker Hub Personal Access Token (required - not password)
+#### Required GitHub Configuration:
 
-**How to generate Docker Hub token:**
-1. Go to [Docker Hub](https://hub.docker.com) → Sign in
-2. Click your profile → Account Settings → Security tab
-3. Click "New Access Token"
-4. Name the token (e.g., "GitHub Actions CI/CD")
-5. Set permissions: "Read, Write & Delete"
-6. Click "Generate"
-7. **Copy the token immediately** - it won't be shown again
-8. Store it as `DOCKER_TOKEN` secret in GitHub
+**Docker Hub:**
+- `DOCKER_USERNAME` - **Variable** - Docker Hub username (Settings → Variables)
+- `DOCKER_TOKEN` - **Secret** - Docker Hub Personal Access Token (Settings → Secrets, not password!)
+
+**Setup Instructions:**
+1. **Add `DOCKER_USERNAME` Variable:**
+   - GitHub → Settings → Secrets and variables → Actions → Variables tab
+   - Click "New repository variable"
+   - Name: `DOCKER_USERNAME`
+   - Value: Your Docker Hub username
+   - Click "Add variable"
+
+2. **Add `DOCKER_TOKEN` Secret:**
+   - GitHub → Settings → Secrets and variables → Actions → Secrets tab
+   - Go to [Docker Hub](https://hub.docker.com) → Account Settings → Security
+   - Click "New Access Token"
+   - Name: "GitHub Actions CI/CD"
+   - Permissions: "Read, Write & Delete"
+   - Click "Generate"
+   - **Copy token immediately** (won't be shown again)
+   - Add as `DOCKER_TOKEN` secret in GitHub
 - `ARTIFACTORY_URL`: Artifactory registry URL (optional)
 - `ARTIFACTORY_REPO`: Artifactory repository name (optional)
 - `ARTIFACTORY_USERNAME`: Artifactory username (optional)
@@ -281,11 +291,16 @@ This project implements a comprehensive CI/CD (Continuous Integration/Continuous
 ### Secret Management
 
 **GitHub:**
-- Stored in: Repository Settings → Secrets and variables → Actions
+- **Secrets:** Stored in Repository Settings → Secrets and variables → Actions → Secrets
+- **Variables:** Stored in Repository Settings → Secrets and variables → Actions → Variables
 - Access: Encrypted at rest, masked in logs
-- Usage: Referenced as `${{ secrets.SECRET_NAME }}`
+- Usage: 
+  - Secrets: `${{ secrets.SECRET_NAME }}`
+  - Variables: `${{ vars.VARIABLE_NAME }}`
 - **Important:** Use Personal Access Tokens, never passwords
-  - Docker Hub: Use `DOCKER_TOKEN` (Personal Access Token)
+  - Docker Hub: 
+    - `DOCKER_USERNAME` → **Variable** (not sensitive, can be public)
+    - `DOCKER_TOKEN` → **Secret** (Personal Access Token, sensitive)
   - Tokens can be rotated/revoked without affecting account password
   - Better security: scope-specific permissions, expiration support
 

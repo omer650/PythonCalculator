@@ -1,17 +1,21 @@
-# GitHub Secrets Required for CI/CD
+# GitHub Secrets and Variables Required for CI/CD
 
-This document lists all GitHub secrets needed for the CI/CD pipeline to work fully.
+This document lists all GitHub secrets and variables needed for the CI/CD pipeline to work fully.
 
-## 📋 Complete List of Secrets
+## 📋 Complete List
 
 ### 🔴 Required (for Docker Hub publishing)
 
-These secrets are **required** if you want to publish Docker images to Docker Hub:
+These are **required** if you want to publish Docker images to Docker Hub:
 
-| Secret Name | Description | How to Get |
-|------------|-------------|------------|
-| `DOCKER_USERNAME` | Your Docker Hub username | Your Docker Hub account username |
-| `DOCKER_TOKEN` | Docker Hub Personal Access Token | See instructions below ⬇️ |
+| Name | Type | Description | How to Get |
+|------|------|-------------|------------|
+| `DOCKER_USERNAME` | **Environment Variable** | Your Docker Hub username | Your Docker Hub account username |
+| `DOCKER_TOKEN` | **Secret** | Docker Hub Personal Access Token | See instructions below ⬇️ |
+
+**Important:**
+- `DOCKER_USERNAME` → Set as **Variable** (Settings → Secrets and variables → Actions → Variables)
+- `DOCKER_TOKEN` → Set as **Secret** (Settings → Secrets and variables → Actions → Secrets)
 
 ### 🟡 Optional (for Artifactory publishing)
 
@@ -33,13 +37,27 @@ These secrets are **optional** - the workflow will skip Render deployment if not
 | `RENDER_API_KEY` | Render.com API key | See instructions below ⬇️ |
 | `RENDER_SERVICE_ID` | Render service ID | See instructions below ⬇️ |
 
-## 🔧 How to Add Secrets
+## 🔧 How to Add Secrets and Variables
+
+### Adding Docker Hub Username (Variable)
 
 1. Go to your GitHub repository
 2. Click **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Enter the secret name and value
-5. Click **Add secret**
+3. Click **Variables** tab
+4. Click **New repository variable**
+5. Name: `DOCKER_USERNAME`
+6. Value: Your Docker Hub username (e.g., `morbargig`)
+7. Click **Add variable**
+
+### Adding Docker Hub Token (Secret)
+
+1. Go to your GitHub repository
+2. Click **Settings** → **Secrets and variables** → **Actions**
+3. Click **Secrets** tab
+4. Click **New repository secret**
+5. Name: `DOCKER_TOKEN`
+6. Value: Your Docker Hub Personal Access Token
+7. Click **Add secret**
 
 ## 📝 Detailed Instructions
 
@@ -92,13 +110,13 @@ Get these from your organization's Artifactory administrator:
 ## ✅ Quick Setup Checklist
 
 ### Minimum Setup (CI only)
-- [ ] **No secrets required!** 
+- [ ] **No secrets or variables required!** 
 - Tests will run on every push
-- Docker publishing requires secrets below
+- Docker publishing requires setup below
 
 ### Docker Hub Publishing
-- [ ] `DOCKER_USERNAME` - Your Docker Hub username
-- [ ] `DOCKER_TOKEN` - Personal Access Token (not password!)
+- [ ] `DOCKER_USERNAME` - **Variable** - Your Docker Hub username
+- [ ] `DOCKER_TOKEN` - **Secret** - Personal Access Token (not password!)
 
 ### Full Setup (All Features)
 - [ ] `DOCKER_USERNAME` + `DOCKER_TOKEN`
@@ -107,11 +125,12 @@ Get these from your organization's Artifactory administrator:
 
 ## 🎯 What Each Secret Does
 
-### `DOCKER_USERNAME` & `DOCKER_TOKEN`
+### `DOCKER_USERNAME` (Variable) & `DOCKER_TOKEN` (Secret)
 - **Used by:** `docker-hub` job
-- **When:** On version tags (`v1.0.0`, etc.)
+- **When:** On pushes to `main`/`master` branches or version tags (`v1.0.0`, etc.)
 - **Purpose:** Authenticates to Docker Hub and pushes images
 - **Required:** Yes, for Docker Hub publishing
+- **Note:** `DOCKER_USERNAME` is a variable (not secret), `DOCKER_TOKEN` is a secret
 
 ### `ARTIFACTORY_*` secrets
 - **Used by:** `artifactory` job
@@ -168,10 +187,10 @@ act push --secret-file .act-secrets --job docker-hub
 
 ## 📊 Secret Usage Matrix
 
-| Secret | Docker Hub | Artifactory | Render | Required |
-|--------|-----------|-------------|--------|----------|
-| `DOCKER_USERNAME` | ✅ | ❌ | ❌ | For Docker Hub |
-| `DOCKER_TOKEN` | ✅ | ❌ | ❌ | For Docker Hub |
+| Name | Type | Docker Hub | Artifactory | Render | Required |
+|------|------|-----------|-------------|--------|----------|
+| `DOCKER_USERNAME` | Variable | ✅ | ❌ | ❌ | For Docker Hub |
+| `DOCKER_TOKEN` | Secret | ✅ | ❌ | ❌ | For Docker Hub |
 | `ARTIFACTORY_URL` | ❌ | ✅ | ❌ | Optional |
 | `ARTIFACTORY_REPO` | ❌ | ✅ | ❌ | Optional |
 | `ARTIFACTORY_USERNAME` | ❌ | ✅ | ❌ | Optional |
