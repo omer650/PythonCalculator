@@ -1,0 +1,100 @@
+stages:
+  - test
+  - build
+  - publish
+
+variables:
+  PYTHON_VERSION: "3.11"
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  # Image names
+  DOCKER_REGISTRY: ${CI_REGISTRY}
+  ARTIFACTORY_REGISTRY: ${ARTIFACTORY_URL}
+  IMAGE_NAME: ${CI_REGISTRY_IMAGE:-calculator-app}
+  ARTIFACTORY_IMAGE: ${ARTIFACTORY_REGISTRY}/${ARTIFACTORY_REPO}/calculator-app
+
+# Test job - runs on all pushes and merge requests
+test:
+  stage: test
+  image: python:${PYTHON_VERSION}-slim
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install -r requirements.txt
+  script:
+    - pytest -q -v
+  only:
+    - branches
+    - merge_requests
+    - tags
+
+# Build Docker image - runs on all branches and tags
+build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - |
+      if [[ "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        VERSION=$CI_COMMIT_TAG
+      else
+        VERSION=${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}
+      fi
+      echo "Building version: $VERSION"
+      docker build -t $IMAGE_NAME:$VERSION -t $IMAGE_NAME:latest .
+      docker push $IMAGE_NAME:$VERSION
+      docker push $IMAGE_NAME:latest
+  only:
+    - branches
+    - tags
+
+# Publish to Docker Hub - only on version tags
+publish-dockerhub:
+  stage: publish
+  image: docker:24
+  services:
+    - docker:24-dind
+  before_script:
+    - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_TOKEN
+  script:
+    - |
+      VERSION=${CI_COMMIT_TAG}
+      echo "Publishing to Docker Hub: $VERSION"
+      docker pull $IMAGE_NAME:$VERSION
+      docker tag $IMAGE_NAME:$VERSION $DOCKERHUB_USERNAME/calculator-app:$VERSION
+      docker tag $IMAGE_NAME:$VERSION $DOCKERHUB_USERNAME/calculator-app:latest
+      docker push $DOCKERHUB_USERNAME/calculator-app:$VERSION
+      docker push $DOCKERHUB_USERNAME/calculator-app:latest
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+
+# Publish to Artifactory - only on version tags
+publish-artifactory:
+  stage: publish
+  image: docker:24
+  services:
+    - docker:24-dind
+  before_script:
+    - |
+      if [ -z "$ARTIFACTORY_USERNAME" ] || [ -z "$ARTIFACTORY_PASSWORD" ]; then
+        echo "Artifactory credentials not set, skipping..."
+        exit 0
+      fi
+    - echo $ARTIFACTORY_PASSWORD | docker login -u $ARTIFACTORY_USERNAME --password-stdin $ARTIFACTORY_REGISTRY
+  script:
+    - |
+      VERSION=${CI_COMMIT_TAG}
+      ARTIFACTORY_FULL_IMAGE="$ARTIFACTORY_REGISTRY/$ARTIFACTORY_REPO/calculator-app"
+      echo "Publishing to Artifactory: $ARTIFACTORY_FULL_IMAGE:$VERSION"
+      docker pull $IMAGE_NAME:$VERSION
+      docker tag $IMAGE_NAME:$VERSION $ARTIFACTORY_FULL_IMAGE:$VERSION
+      docker tag $IMAGE_NAME:$VERSION $ARTIFACTORY_FULL_IMAGE:latest
+      docker push $ARTIFACTORY_FULL_IMAGE:$VERSION
+      docker push $ARTIFACTORY_FULL_IMAGE:latest
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+      when: manual
+  allow_failure: true
+

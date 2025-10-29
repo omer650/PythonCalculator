@@ -36,8 +36,8 @@ jobs:
         run: |
           pytest -q
 
-  docker:
-    name: Build and publish Docker image
+  docker-hub:
+    name: Build and publish to Docker Hub
     runs-on: ubuntu-latest
     needs: test
     if: startsWith(github.ref, 'refs/tags/v')
@@ -63,7 +63,7 @@ jobs:
           TAG=${GITHUB_REF#refs/tags/}
           echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
-      - name: Build and push
+      - name: Build and push to Docker Hub
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -73,5 +73,59 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.tag }}
             ${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  artifactory:
+    name: Build and publish to Artifactory
+    runs-on: ubuntu-latest
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Check Artifactory credentials
+        id: check-artifactory
+        run: |
+          if [ -z "${{ secrets.ARTIFACTORY_URL }}" ] || [ -z "${{ secrets.ARTIFACTORY_USERNAME }}" ] || [ -z "${{ secrets.ARTIFACTORY_PASSWORD }}" ]; then
+            echo "Artifactory credentials not set, skipping..."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "skip=false" >> $GITHUB_OUTPUT
+
+      - name: Extract version from tag
+        if: steps.check-artifactory.outputs.skip != 'true'
+        id: meta
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Log in to Artifactory
+        if: steps.check-artifactory.outputs.skip != 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ARTIFACTORY_URL }}
+          username: ${{ secrets.ARTIFACTORY_USERNAME }}
+          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
+
+      - name: Build and push to Artifactory
+        if: steps.check-artifactory.outputs.skip != 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: |
+            ${{ secrets.ARTIFACTORY_URL }}/${{ secrets.ARTIFACTORY_REPO }}/calculator-app:${{ steps.meta.outputs.tag }}
+            ${{ secrets.ARTIFACTORY_URL }}/${{ secrets.ARTIFACTORY_REPO }}/calculator-app:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

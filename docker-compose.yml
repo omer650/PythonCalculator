@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  calculator-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: calculator-app
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    volumes:
+      # Optional: Mount source for live reload (if using a volume mount strategy)
+      - ./app.py:/app/app.py:ro
+      - ./calculator.py:/app/calculator.py:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - calculator-network
+
+  # Optional: Add a reverse proxy (nginx) for production-like setup
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: calculator-nginx
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf:ro
+  #   depends_on:
+  #     - calculator-app
+  #   networks:
+  #     - calculator-network
+
+networks:
+  calculator-network:
+    driver: bridge
+

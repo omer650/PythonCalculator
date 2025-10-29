@@ -1,16 +1,48 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.pytest_cache/
 .venv/
+venv/
+env/
 .env
+*.egg-info/
+dist/
+build/
 
+# Git
 .git/
 .gitignore
+.github/
+.gitlab-ci.yml
 
+# Editor/OS
 .vscode/
 .idea/
 .DS_Store
+*.swp
+*.swo
+*~
 
+# Tests (not needed in final image)
 pytest.ini
+*.pytest_cache/
+test_*.py
+*_test.py
+
+# Documentation
+*.md
+TESTING_GUIDE.md
+README.md
+LICENSE
+
+# Docker
+docker-compose.yml
+.dockerignore
+Dockerfile*
+
+# CI/CD
+.gitlab-ci.yml
+.github/
