@@ -16,4 +16,5 @@ services:
     buildCommand: ""
     startCommand: python app.py
     numInstances: 1
+    
 
