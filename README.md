@@ -183,10 +183,10 @@ Go to: `Settings → CI/CD → Variables` in your GitLab project
 
 ### CI/CD Summary
 
-| Platform | Test | Build | Docker Hub | Artifactory |
-|----------|------|-------|------------|-------------|
-| GitHub Actions | ✅ All pushes/PRs | ✅ On tags | ✅ On tags | ✅ On tags (optional) |
-| GitLab CI/CD | ✅ All branches/MRs | ✅ All branches | ✅ On tags | ✅ On tags (manual) |
+| Platform | Test | Build | Docker Hub | Artifactory | Render Deploy |
+|----------|------|-------|------------|-------------|---------------|
+| GitHub Actions | ✅ All pushes/PRs | ✅ On tags | ✅ On tags | ✅ On tags (optional) | ✅ On main/tags (optional) |
+| GitLab CI/CD | ✅ All branches/MRs | ✅ All branches | ✅ On tags | ✅ On tags (manual) | ❌ |
 
 ### Testing CI/CD
 
@@ -202,3 +202,98 @@ git tag v1.0.0
 git push origin v1.0.0
 # Then manually trigger Artifactory publish in GitLab UI if needed
 ```
+
+## ☁️ Render.com Deployment
+
+This project includes configuration for deploying to [Render.com](https://render.com), a cloud platform for hosting Docker containers and web services.
+
+### Render Configuration
+
+The `render.yaml` file configures automatic deployment to Render.com:
+
+- **Service Type:** Web Service (Docker)
+- **Region:** Oregon (configurable)
+- **Plan:** Free tier (upgradeable)
+- **Health Check:** `/health` endpoint
+- **Auto Deploy:** Enabled (deploys on push to main)
+
+### Setup Options
+
+#### Option 1: Automatic Deployment (Recommended)
+
+1. **Connect Repository to Render:**
+   - Go to [Render Dashboard](https://dashboard.render.com)
+   - Click "New +" → "Web Service"
+   - Connect your GitHub/GitLab repository
+   - Select the repository and branch (e.g., `main`)
+   - Render will detect `render.yaml` automatically
+
+2. **Configure Service:**
+   - Render will use settings from `render.yaml`
+   - Set environment variables if needed (in Render dashboard)
+   - Review and create service
+
+3. **Automatic Deploys:**
+   - Every push to `main` branch triggers automatic deployment
+   - Build logs available in Render dashboard
+
+#### Option 2: Manual Deployment via CI/CD
+
+Configure GitHub Actions to trigger Render deployments:
+
+**Required GitHub Secrets:**
+- `RENDER_API_KEY` – Your Render API key (get from Render Dashboard → Account Settings → API Keys)
+- `RENDER_SERVICE_ID` – Your Render service ID (found in service URL: `https://dashboard.render.com/web/{SERVICE_ID}`)
+
+**Deployment Behavior:**
+- Triggers on push to `main`/`master` branches
+- Triggers on version tags (`v*.*.*`)
+- Skips automatically if credentials not set
+
+#### Option 3: Docker Image Deployment
+
+If you've published images to Docker Hub, you can deploy from Docker Hub:
+
+1. In Render Dashboard, create new "Web Service"
+2. Choose "Docker" environment
+3. Enter Docker image: `{DOCKER_USERNAME}/calculator-app:latest`
+4. Configure as needed
+
+### Render Environment Variables
+
+Set these in Render Dashboard → Environment:
+
+- `FLASK_ENV=production` (already in render.yaml)
+- `PYTHONUNBUFFERED=1` (already in render.yaml)
+- Add custom variables as needed
+
+### Render Service URLs
+
+After deployment, your service will be available at:
+- Free tier: `https://calculator-app.onrender.com` (or custom domain)
+- Custom domains can be configured in Render dashboard
+
+### Render Deploy Commands
+
+The service uses:
+- **Build Command:** (empty, handled by Docker)
+- **Start Command:** `python app.py`
+- **Health Check:** `GET /health`
+
+### Monitoring & Logs
+
+- View logs: Render Dashboard → Service → Logs
+- Metrics: CPU, Memory, Request count
+- Alerts: Configure in Render Dashboard
+
+### Render Limitations (Free Tier)
+
+- Services sleep after 15 minutes of inactivity (wake on first request)
+- Limited build minutes per month
+- Single instance
+
+**Upgrade for:**
+- Always-on services (no sleep)
+- Multiple instances
+- More build minutes
+- Custom domains with SSL
