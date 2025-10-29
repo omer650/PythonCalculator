@@ -13,20 +13,19 @@ class Calculator:
         """Add two numbers"""
         # TODO: Implement addition
         # Hint: result = a + b, then add to history
-        pass
+        return a + b
 
     def subtract(self, a, b):
         """Subtract b from a"""
-        # TODO: Implement subtraction
-        pass
+        return a -b
 
     def multiply(self, a, b):
-        # TODO: Implement multiplication
-        pass
+        return a * b
 
     def divide(self, a, b):
         # TODO: Implement division
-        pass
+        return a / b
+    
     def get_history(self):     
         """Return calculation history"""
         return self.history
