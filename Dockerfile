@@ -25,6 +25,7 @@ EXPOSE 5001
 USER appuser
 
 # Default command to run the web app
+# PORT environment variable is read by app.py (supports Render.com dynamic ports)
 CMD ["python", "app.py"]
 
 

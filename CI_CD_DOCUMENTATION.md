@@ -431,12 +431,176 @@ This project implements a comprehensive CI/CD (Continuous Integration/Continuous
 - Login: Uses organization-specific credentials
 - Format: `{registry-url}/{repository}/{image}`
 
+### 6. render.yaml
+**Location:** `/render.yaml`  
+**Purpose:** Render.com service configuration file for automated deployment.
+
+**Configuration:**
+- **Type:** Web Service (Docker)
+- **Environment:** Docker (uses Dockerfile)
+- **Region:** Oregon (configurable)
+- **Plan:** Free tier (configurable)
+- **Auto Deploy:** Enabled (deploys on push to main branch)
+- **Health Check:** `/health` endpoint
+- **Port:** 5001 (auto-detected from EXPOSE in Dockerfile)
+
+**Features:**
+- Automatic deployments on Git push
+- Health monitoring
+- Environment variables support
+- Single instance (free tier), scalable on paid plans
+
+**Environment Variables:**
+- `FLASK_ENV=production` – Production Flask environment
+- `PYTHONUNBUFFERED=1` – Ensures Python output is unbuffered
+
+### 7. GitHub Actions Render Deployment Job
+
+**Location:** `/.github/workflows/ci-cd.yml` (deploy-render job)
+
+**Purpose:** Optional GitHub Actions job to trigger Render deployments via API.
+
+**Behavior:**
+- Runs on pushes to `main`/`master` branches
+- Runs on version tags (`v*.*.*`)
+- Depends on: `test` job (must pass)
+- Skips gracefully if Render credentials not configured
+
+**Steps:**
+1. Checkout code
+2. Verify Render credentials exist
+3. Trigger Render deployment via API
+
+**Required GitHub Secrets:**
+- `RENDER_API_KEY`: Render API key (from Render Dashboard → Account Settings → API Keys)
+- `RENDER_SERVICE_ID`: Service ID from Render service URL (e.g., `https://dashboard.render.com/web/{SERVICE_ID}`)
+
+**API Endpoint:**
+- `POST https://api.render.com/deploy/{SERVICE_ID}?key={API_KEY}`
+- Triggers a new deployment of the service
+
+## Render.com Deployment
+
+### Deployment Methods
+
+#### Method 1: Automatic via Git Integration (Recommended)
+1. Connect repository to Render.com
+2. Render detects `render.yaml` automatically
+3. Service auto-deploys on every push to main branch
+4. Build logs visible in Render dashboard
+
+#### Method 2: Manual via CI/CD API
+- Configure GitHub Actions with Render secrets
+- Actions job triggers Render deployment via API
+- Useful for triggering deployments on tags/releases
+
+#### Method 3: Docker Image Deployment
+- Deploy using pre-built Docker images from Docker Hub
+- Point Render service to Docker Hub image
+- Useful when using existing CI/CD pipelines
+
+### Render Service Configuration
+
+**render.yaml Structure:**
+```yaml
+services:
+  - type: web              # Web service
+    name: calculator-app   # Service name
+    env: docker            # Docker environment
+    region: oregon         # Deployment region
+    plan: free            # Service plan
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:              # Environment variables
+      - key: FLASK_ENV
+        value: production
+    healthCheckPath: /health
+    autoDeploy: true      # Auto-deploy on push
+    startCommand: python app.py
+```
+
+**Render Regions:**
+- `oregon` (US West)
+- `frankfurt` (Europe)
+- `singapore` (Asia Pacific)
+
+**Render Plans:**
+- `free`: Free tier with limitations
+- `starter`: $7/month
+- `standard`: $25/month
+- `pro`: $85/month
+- Custom pricing available
+
+### Render Deployment Flow
+
+```
+Git Push to Main
+       │
+       ▼
+Render Detects Change (if Git connected)
+       │
+       ├─── Reads render.yaml ────► Configures service
+       │
+       ├─── Builds Docker Image ──► From Dockerfile
+       │
+       ├─── Starts Container ────► Runs startCommand
+       │
+       └─── Health Check ────────► Monitors /health endpoint
+```
+
+### Render vs Other Platforms
+
+| Feature | Render.com | Docker Hub | Artifactory |
+|---------|------------|------------|-------------|
+| **Purpose** | Hosting/Deployment | Image Registry | Enterprise Registry |
+| **Build** | ✅ Automatic | ❌ | ❌ |
+| **Deploy** | ✅ Automatic | ❌ | ❌ |
+| **Free Tier** | ✅ (with limits) | ✅ | ❌ |
+| **Auto Scale** | ✅ (paid) | N/A | N/A |
+| **Git Integration** | ✅ | ❌ | ❌ |
+
+### Render Limitations (Free Tier)
+
+- **Service Sleep:** Services sleep after 15 minutes of inactivity
+- **Cold Start:** First request after sleep takes ~30 seconds
+- **Build Minutes:** Limited free build minutes per month
+- **Instances:** Single instance only
+- **Custom Domains:** Limited on free tier
+
+### Render Monitoring
+
+- **Logs:** Real-time application logs
+- **Metrics:** CPU, Memory, Request count
+- **Health:** Automatic health check monitoring
+- **Alerts:** Email/webhook notifications on failures
+
+### Render Environment Variables
+
+Set in Render Dashboard → Environment tab or in `render.yaml`:
+- Application-specific variables
+- Secret variables (encrypted)
+- Environment-specific variables (staging/production)
+
+## Updated Workflow Comparison
+
+| Feature | GitHub Actions | GitLab CI/CD | Render.com |
+|---------|---------------|--------------|------------|
+| **Test Execution** | ✅ All pushes/PRs | ✅ All branches/MRs | ❌ |
+| **Build Trigger** | ✅ On tags | ✅ All branches/tags | ✅ On push to main |
+| **GitLab Registry** | ❌ | ✅ Always builds | ❌ |
+| **Docker Hub** | ✅ On tags | ✅ On version tags | ❌ |
+| **Artifactory** | ✅ On tags | ✅ On tags (manual) | ❌ |
+| **Auto Deploy** | ❌ | ❌ | ✅ On push |
+| **Hosting** | ❌ | ❌ | ✅ Web service |
+| **Health Monitoring** | ❌ | ❌ | ✅ Built-in |
+
 ## Conclusion
 
 This CI/CD setup provides:
 - ✅ Automated testing on all code changes
 - ✅ Docker image building and publishing
 - ✅ Multi-registry support (Docker Hub, Artifactory, GitLab Registry)
+- ✅ Cloud deployment (Render.com)
 - ✅ Local development environment (Docker Compose)
 - ✅ Security best practices (non-root containers, secret management)
 - ✅ Flexible deployment options

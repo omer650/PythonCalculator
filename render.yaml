@@ -1,7 +1,7 @@
 services:
   - type: web
     name: calculator-app
-    env: docker
+    runtime: docker
     region: oregon
     plan: free
     dockerfilePath: ./Dockerfile
@@ -10,11 +10,10 @@ services:
       - key: FLASK_ENV
         value: production
       - key: PYTHONUNBUFFERED
-        value: 1
+        value: "1"
     healthCheckPath: /health
     autoDeploy: true
     buildCommand: ""
     startCommand: python app.py
-    envVarFiles: []
     numInstances: 1
 

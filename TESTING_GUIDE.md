@@ -145,3 +145,72 @@ If you have a GitLab repository:
 ### Typical Artifactory URLs
 - JFrog Artifactory: `your-artifactory.jfrog.io` or `artifactory.yourdomain.com`
 - Repository format: Usually `docker` or `docker-local`
+
+## Render.com Deployment Testing
+
+### Option 1: Automatic Deployment (Recommended)
+
+1. **Setup:**
+   - Create account at [render.com](https://render.com)
+   - Go to Dashboard → New + → Web Service
+   - Connect GitHub/GitLab repository
+   - Render will detect `render.yaml` automatically
+
+2. **Test Deployment:**
+   ```bash
+   git add render.yaml
+   git commit -m "Add Render deployment"
+   git push origin main
+   ```
+   - Render will automatically build and deploy
+   - Check deployment status in Render Dashboard
+
+3. **Verify Deployment:**
+   ```bash
+   # Get your Render URL from dashboard
+   curl https://calculator-app.onrender.com/health
+   ```
+
+### Option 2: Test via GitHub Actions
+
+1. **Get Render Credentials:**
+   - Render Dashboard → Account Settings → API Keys → Create API Key
+   - Service URL: `https://dashboard.render.com/web/{SERVICE_ID}`
+   - Extract SERVICE_ID from URL
+
+2. **Add GitHub Secrets:**
+   - GitHub → Settings → Secrets → Actions
+   - Add: `RENDER_API_KEY`
+   - Add: `RENDER_SERVICE_ID`
+
+3. **Trigger Deployment:**
+   ```bash
+   git push origin main
+   # Check GitHub Actions → deploy-render job
+   ```
+
+### Option 3: Manual Deployment
+
+1. **In Render Dashboard:**
+   - Create new Web Service
+   - Select Docker environment
+   - Point to Docker Hub image: `{username}/calculator-app:latest`
+   - Configure and deploy
+
+### Render Health Check
+
+Test your deployed service:
+```bash
+# Health endpoint
+curl https://calculator-app.onrender.com/health
+
+# Expected response:
+# {"status":"healthy","message":"Calculator web app is running!"}
+```
+
+### Render Logs
+
+View deployment and application logs:
+- Render Dashboard → Service → Logs
+- Real-time log streaming
+- Historical logs available
