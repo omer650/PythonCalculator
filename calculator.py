@@ -11,6 +11,8 @@ class Calculator:
 
     def add(self, a, b):
         """Add two numbers"""
+        return a + b
+
         # TODO: Implement addition
         # Hint: result = a + b, then add to history
         return a + b
