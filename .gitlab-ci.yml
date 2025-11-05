@@ -1,100 +1,76 @@
 stages:
   - test
   - build
-  - publish
+  - push
 
 variables:
-  PYTHON_VERSION: "3.11"
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: "/certs"
-  # Image names
-  DOCKER_REGISTRY: ${CI_REGISTRY}
-  ARTIFACTORY_REGISTRY: ${ARTIFACTORY_URL}
-  IMAGE_NAME: ${CI_REGISTRY_IMAGE:-calculator-app}
-  ARTIFACTORY_IMAGE: ${ARTIFACTORY_REGISTRY}/${ARTIFACTORY_REPO}/calculator-app
+  ARTIFACTORY_URL: "http://artifactory:8082"
+  ARTIFACTORY_REPO: "docker-local"
+  IMAGE_NAME: "calculator-app"
 
-# Test job - runs on all pushes and merge requests
+# Test stage - runs on all branches and merge requests
 test:
   stage: test
-  image: python:${PYTHON_VERSION}-slim
+  image: python:3.11-slim
   before_script:
-    - python -m pip install --upgrade pip
-    - pip install -r requirements.txt
+    - pip install --no-cache-dir -r requirements.txt
   script:
-    - pytest -q -v
+    - echo "Running tests..."
+    - python -m pytest test_calculator.py -v
+    - echo "✅ All tests passed!"
   only:
     - branches
     - merge_requests
-    - tags
 
-# Build Docker image - runs on all branches and tags
+# Build stage - builds Docker image
 build:
   stage: build
-  image: docker:24
+  image: docker:24-dind
   services:
     - docker:24-dind
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - |
-      if [[ "$CI_COMMIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        VERSION=$CI_COMMIT_TAG
-      else
-        VERSION=${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}
-      fi
-      echo "Building version: $VERSION"
-      docker build -t $IMAGE_NAME:$VERSION -t $IMAGE_NAME:latest .
-      docker push $IMAGE_NAME:$VERSION
-      docker push $IMAGE_NAME:latest
+    - echo "Building Docker image..."
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG -t $CI_REGISTRY_IMAGE:latest .
+    - echo "Pushing to GitLab Container Registry..."
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    - docker push $CI_REGISTRY_IMAGE:latest
+    - echo "✅ Image built and pushed to GitLab registry!"
   only:
     - branches
     - tags
 
-# Publish to Docker Hub - only on version tags
-publish-dockerhub:
-  stage: publish
-  image: docker:24
+# Push to Artifactory stage - pushes to Artifactory OSS
+push:artifactory:
+  stage: push
+  image: docker:24-dind
   services:
     - docker:24-dind
-  before_script:
-    - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_TOKEN
-  script:
-    - |
-      VERSION=${CI_COMMIT_TAG}
-      echo "Publishing to Docker Hub: $VERSION"
-      docker pull $IMAGE_NAME:$VERSION
-      docker tag $IMAGE_NAME:$VERSION $DOCKERHUB_USERNAME/calculator-app:$VERSION
-      docker tag $IMAGE_NAME:$VERSION $DOCKERHUB_USERNAME/calculator-app:latest
-      docker push $DOCKERHUB_USERNAME/calculator-app:$VERSION
-      docker push $DOCKERHUB_USERNAME/calculator-app:latest
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
-
-# Publish to Artifactory - only on version tags
-publish-artifactory:
-  stage: publish
-  image: docker:24
-  services:
-    - docker:24-dind
+  variables:
+    ARTIFACTORY_FULL_URL: "${ARTIFACTORY_URL}/${ARTIFACTORY_REPO}/${IMAGE_NAME}"
   before_script:
     - |
       if [ -z "$ARTIFACTORY_USERNAME" ] || [ -z "$ARTIFACTORY_PASSWORD" ]; then
-        echo "Artifactory credentials not set, skipping..."
+        echo "⚠️  Artifactory credentials not set. Skipping Artifactory push."
         exit 0
       fi
-    - echo $ARTIFACTORY_PASSWORD | docker login -u $ARTIFACTORY_USERNAME --password-stdin $ARTIFACTORY_REGISTRY
+    - echo "Logging into Artifactory..."
+    - echo "$ARTIFACTORY_PASSWORD" | docker login -u "$ARTIFACTORY_USERNAME" --password-stdin "$ARTIFACTORY_URL"
   script:
-    - |
-      VERSION=${CI_COMMIT_TAG}
-      ARTIFACTORY_FULL_IMAGE="$ARTIFACTORY_REGISTRY/$ARTIFACTORY_REPO/calculator-app"
-      echo "Publishing to Artifactory: $ARTIFACTORY_FULL_IMAGE:$VERSION"
-      docker pull $IMAGE_NAME:$VERSION
-      docker tag $IMAGE_NAME:$VERSION $ARTIFACTORY_FULL_IMAGE:$VERSION
-      docker tag $IMAGE_NAME:$VERSION $ARTIFACTORY_FULL_IMAGE:latest
-      docker push $ARTIFACTORY_FULL_IMAGE:$VERSION
-      docker push $ARTIFACTORY_FULL_IMAGE:latest
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
-      when: manual
+    - echo "Tagging image for Artifactory..."
+    - docker pull $CI_REGISTRY_IMAGE:latest
+    - docker tag $CI_REGISTRY_IMAGE:latest $ARTIFACTORY_FULL_URL:$CI_COMMIT_REF_SLUG
+    - docker tag $CI_REGISTRY_IMAGE:latest $ARTIFACTORY_FULL_URL:latest
+    - echo "Pushing to Artifactory..."
+    - docker push $ARTIFACTORY_FULL_URL:$CI_COMMIT_REF_SLUG
+    - docker push $ARTIFACTORY_FULL_URL:latest
+    - echo "✅ Image pushed to Artifactory!"
+    - echo "Image available at: $ARTIFACTORY_FULL_URL:latest"
+  only:
+    - branches
+    - tags
+  when: manual
   allow_failure: true
-

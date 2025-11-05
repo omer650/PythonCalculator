@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # GitLab CE - Main GitLab instance
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab-ce
+    hostname: gitlab.local
+    restart: unless-stopped
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.local'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+        # Disable Let's Encrypt for local development
+        letsencrypt['enable'] = false
+        # Reduce memory usage (optional, adjust based on your system)
+        puma['worker_processes'] = 2
+        sidekiq['max_concurrency'] = 5
+    ports:
+      - "8080:80"      # HTTP
+      - "8443:443"     # HTTPS
+      - "2224:22"      # SSH
+    volumes:
+      - gitlab_config:/etc/gitlab
+      - gitlab_logs:/var/log/gitlab
+      - gitlab_data:/var/opt/gitlab
+    networks:
+      - gitlab-network
+    healthcheck:
+      test: ["CMD", "/opt/gitlab/bin/gitlab-healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # GitLab Runner - CI/CD executor
+  gitlab-runner:
+    image: gitlab/gitlab-runner:latest
+    container_name: gitlab-runner
+    restart: unless-stopped
+    depends_on:
+      - gitlab
+    volumes:
+      - gitlab_runner_config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./scripts:/scripts:ro
+    networks:
+      - gitlab-network
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    # Runner registration is done via register script
+
+  # Artifactory OSS - Docker registry and artifact storage
+  artifactory:
+    image: releases-docker.jfrog.io/jfrog/artifactory-oss:latest
+    container_name: artifactory-oss
+    restart: unless-stopped
+    ports:
+      - "8081:8081"    # Web UI
+      - "8082:8082"    # Docker registry
+    environment:
+      - ARTIFACTORY_HOME=/var/opt/jfrog/artifactory
+      - EXTRA_JAVA_OPTIONS=-Xms512m -Xmx2g
+    volumes:
+      - artifactory_data:/var/opt/jfrog/artifactory
+    networks:
+      - gitlab-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/artifactory/api/system/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  gitlab_config:
+  gitlab_logs:
+  gitlab_data:
+  gitlab_runner_config:
+  artifactory_data:
+
+networks:
+  gitlab-network:
+    driver: bridge
+
