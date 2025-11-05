@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://gitlab.local'
+        external_url 'http://localhost:8080'
         gitlab_rails['gitlab_shell_ssh_port'] = 2224
         # Disable Let's Encrypt for local development
         letsencrypt['enable'] = false
