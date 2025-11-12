@@ -77,7 +77,7 @@ deploy_artifactory:
     - docker push $ARTIFACTORY_FULL_URL:$CI_COMMIT_REF_SLUG
     - docker push $ARTIFACTORY_FULL_URL:latest
     - echo "✅ Image pushed to Artifactory!"
-    - echo "Image available at: $ARTIFACTORY_FULL_URL:latest"
+    - 'echo "Image available at: ${ARTIFACTORY_FULL_URL}:latest"'
   only:
     - branches
     - tags

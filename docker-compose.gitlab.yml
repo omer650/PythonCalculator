@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # GitLab CE - Main GitLab instance
   gitlab:
@@ -9,7 +7,9 @@ services:
     restart: unless-stopped
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost:8080'
+        external_url 'http://gitlab.local'
+        nginx['listen_port'] = 80
+        puma['socket'] = '/var/opt/gitlab/gitlab-rails/sockets/gitlab.socket'
         gitlab_rails['gitlab_shell_ssh_port'] = 2224
         # Disable Let's Encrypt for local development
         letsencrypt['enable'] = false
@@ -24,6 +24,7 @@ services:
       - gitlab_config:/etc/gitlab
       - gitlab_logs:/var/log/gitlab
       - gitlab_data:/var/opt/gitlab
+    shm_size: '256m'
     networks:
       - gitlab-network
     healthcheck:
@@ -33,48 +34,48 @@ services:
       retries: 5
       start_period: 120s
 
-  # GitLab Runner - CI/CD executor
-  gitlab-runner:
-    image: gitlab/gitlab-runner:latest
-    container_name: gitlab-runner
-    restart: unless-stopped
-    depends_on:
-      - gitlab
-    volumes:
-      - gitlab_runner_config:/etc/gitlab-runner
-      # Mount Docker socket to allow runner to build Docker images
-      - /var/run/docker.sock:/var/run/docker.sock
-      # Mount scripts directory for registration helper
-      - ./scripts:/scripts:ro
-    networks:
-      - gitlab-network
-    environment:
-      # Docker host configuration for runner
-      - DOCKER_HOST=unix:///var/run/docker.sock
-    # Runner registration is done via register script or GitLab UI
-    # The runner can access GitLab via internal network name "gitlab"
+  # GitLab Runner - CI/CD executor (commented out for now)
+  # gitlab-runner:
+  #   image: gitlab/gitlab-runner:latest
+  #   container_name: gitlab-runner
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - gitlab
+  #   volumes:
+  #     - gitlab_runner_config:/etc/gitlab-runner
+  #     # Mount Docker socket to allow runner to build Docker images
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     # Mount scripts directory for registration helper
+  #     - ./scripts:/scripts:ro
+  #   networks:
+  #     - gitlab-network
+  #   environment:
+  #     # Docker host configuration for runner
+  #     - DOCKER_HOST=unix:///var/run/docker.sock
+  #   # Runner registration is done via register script or GitLab UI
+  #   # The runner can access GitLab via internal network name "gitlab"
 
   # Artifactory OSS - Docker registry and artifact storage
-  artifactory:
-    image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.19.10
-    container_name: artifactory-oss
-    restart: unless-stopped
-    ports:
-      - "8081:8081"    # Web UI
-      - "8082:8082"    # Docker registry
-    environment:
-      - ARTIFACTORY_HOME=/var/opt/jfrog/artifactory
-      - EXTRA_JAVA_OPTIONS=-Xms512m -Xmx2g
-    volumes:
-      - artifactory_data:/var/opt/jfrog/artifactory
-    networks:
-      - gitlab-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/artifactory/api/system/ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
+  # artifactory:
+  #   image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.19.10
+  #   container_name: artifactory-oss
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8081:8081"    # Web UI
+  #     - "8082:8082"    # Docker registry
+  #   environment:
+  #     - ARTIFACTORY_HOME=/var/opt/jfrog/artifactory
+  #     - EXTRA_JAVA_OPTIONS=-Xms512m -Xmx2g
+  #   volumes:
+  #     - artifactory_data:/var/opt/jfrog/artifactory
+  #   networks:
+  #     - gitlab-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8081/artifactory/api/system/ping"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #     start_period: 60s
 
 volumes:
   gitlab_config:
