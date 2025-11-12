@@ -51,7 +51,7 @@ build:
     - tags
 
 # Push to Artifactory stage - pushes to Artifactory OSS (optional)
-push-artifactory:
+deploy_artifactory:
   stage: push
   image: docker:24-dind
   services:
@@ -70,13 +70,10 @@ push-artifactory:
     - echo "$ARTIFACTORY_PASSWORD" | docker login -u "$ARTIFACTORY_USERNAME" --password-stdin "$ARTIFACTORY_URL"
   script:
     - echo "Tagging image for Artifactory..."
-    # Pull image from GitLab registry
     - docker pull $CI_REGISTRY_IMAGE:latest
-    # Tag for Artifactory with branch/tag name and latest
     - docker tag $CI_REGISTRY_IMAGE:latest $ARTIFACTORY_FULL_URL:$CI_COMMIT_REF_SLUG
     - docker tag $CI_REGISTRY_IMAGE:latest $ARTIFACTORY_FULL_URL:latest
     - echo "Pushing to Artifactory..."
-    # Push to Artifactory Docker registry
     - docker push $ARTIFACTORY_FULL_URL:$CI_COMMIT_REF_SLUG
     - docker push $ARTIFACTORY_FULL_URL:latest
     - echo "✅ Image pushed to Artifactory!"
