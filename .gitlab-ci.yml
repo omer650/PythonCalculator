@@ -51,7 +51,7 @@ build:
     - tags
 
 # Push to Artifactory stage - pushes to Artifactory OSS (optional)
-push:artifactory:
+push-artifactory:
   stage: push
   image: docker:24-dind
   services:
