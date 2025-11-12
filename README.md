@@ -271,6 +271,56 @@ make clean         # Remove everything (⚠️ deletes all data)
 - **Artifactory:** http://localhost:8081 (username: `admin`, password: `password`)
 - **Artifactory Docker Registry:** http://localhost:8082
 
+#### First-Time Login & Password Management
+
+**Get Initial Auto-Generated Password:**
+```bash
+# For first-time setup, get the auto-generated password
+docker compose -f docker-compose.gitlab.yml exec gitlab cat /etc/gitlab/initial_root_password
+
+# Or use the helper script
+./get_gitlab_password.sh
+```
+
+**Reset Root Password (if needed):**
+```bash
+# Reset the root password to a new password
+docker compose -f docker-compose.gitlab.yml exec gitlab gitlab-rails runner "user = User.find_by(username: 'root'); user.password = 'YourNewPassword'; user.password_confirmation = 'YourNewPassword'; user.save!"
+```
+
+**Check GitLab Status:**
+```bash
+# Check if GitLab is ready
+./check_gitlab_status.sh
+
+# Or manually check
+curl -I http://localhost:8080
+```
+
+**Wait for GitLab to Initialize:**
+```bash
+# Script that waits until GitLab is ready
+./wait_for_gitlab.sh
+```
+
+**Important Notes:**
+- The initial root password is auto-generated and stored in `/etc/gitlab/initial_root_password`
+- This password file is automatically deleted after 24 hours for security
+- Change the password immediately after first login via the web UI
+- If the initial password doesn't work (due to container restarts), use the reset command above
+
+**Fresh Installation (Start from Scratch):**
+```bash
+# Stop and remove everything (including volumes)
+docker compose -f docker-compose.gitlab.yml down -v
+
+# Start fresh
+docker compose -f docker-compose.gitlab.yml up -d
+
+# Wait 3-5 minutes for initialization, then get the password
+docker compose -f docker-compose.gitlab.yml exec gitlab cat /etc/gitlab/initial_root_password
+```
+
 #### GitLab CI/CD Variables
 
 **Built-in variables (automatically available):**

@@ -1,0 +1,63 @@
+## ✅ Fresh GitLab Installation - Login Credentials
+
+### **Login Information:**
+
+**URL:** http://localhost:8080
+
+**Username:** `root`
+
+**Password:** `l3zV6dgjvEvJKYUq0mn3ty5BLV17UmZDOIoHXM0AEm8=`
+
+---
+
+### **Important Notes:**
+
+⚠️ This is a **fresh installation** - all previous data has been wiped.
+
+⚠️ This password is auto-generated and stored in `/etc/gitlab/initial_root_password` inside the container.
+
+⚠️ **The password file will be automatically deleted after 24 hours for security.**
+
+---
+
+### **After First Login:**
+
+1. **Change the password immediately:**
+   - Click your avatar (top right)
+   - Go to **"Edit Profile"**
+   - Click **"Password"** in the left menu
+   - Enter current password: `l3zV6dgjvEvJKYUq0mn3ty5BLV17UmZDOIoHXM0AEm8=`
+   - Enter your new password twice
+   - Click **"Update password"**
+
+2. **Recommended:** Create a new admin user and disable root login after setup.
+
+---
+
+### **If You Need the Password Again (within 24 hours):**
+
+```bash
+./get_gitlab_password.sh
+```
+
+Or manually:
+
+```bash
+docker compose -f docker-compose.gitlab.yml exec gitlab cat /etc/gitlab/initial_root_password
+```
+
+---
+
+### **Complete Reset (Start Over):**
+
+```bash
+# Nuclear option - removes everything
+docker compose -f docker-compose.gitlab.yml down -v
+docker compose -f docker-compose.gitlab.yml up -d
+./wait_for_gitlab.sh
+```
+
+---
+
+**Installation Date:** November 12, 2025
+**Status:** Ready to use ✅
