@@ -42,17 +42,21 @@ services:
       - gitlab
     volumes:
       - gitlab_runner_config:/etc/gitlab-runner
+      # Mount Docker socket to allow runner to build Docker images
       - /var/run/docker.sock:/var/run/docker.sock
+      # Mount scripts directory for registration helper
       - ./scripts:/scripts:ro
     networks:
       - gitlab-network
     environment:
+      # Docker host configuration for runner
       - DOCKER_HOST=unix:///var/run/docker.sock
-    # Runner registration is done via register script
+    # Runner registration is done via register script or GitLab UI
+    # The runner can access GitLab via internal network name "gitlab"
 
   # Artifactory OSS - Docker registry and artifact storage
   artifactory:
-    image: releases-docker.jfrog.io/jfrog/artifactory-oss:latest
+    image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.19.10
     container_name: artifactory-oss
     restart: unless-stopped
     ports:

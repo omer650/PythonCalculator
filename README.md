@@ -79,6 +79,19 @@ def divide(self, a, b):
 
 When all methods work, the calculator will be complete! 🎉
 
+## 📚 Documentation
+
+### Quick References
+- **GitLab CI/CD Setup**: See [GitLab CI/CD section](#gitlab-cicd) above for quick setup
+- **Complete GitLab Guide**: [GITLAB_CI_CD_SETUP.md](GITLAB_CI_CD_SETUP.md) - Comprehensive educational guide with detailed explanations
+- **Testing Guide**: [TESTING_GUIDE.md](TESTING_GUIDE.md) - How to test your calculator
+- **Troubleshooting**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues and solutions
+
+### Other Documentation
+- **CI/CD Overview**: [CI_CD_DOCUMENTATION.md](CI_CD_DOCUMENTATION.md) - Detailed CI/CD architecture explanation
+- **GitHub Secrets**: [GITHUB_SECRETS_GUIDE.md](GITHUB_SECRETS_GUIDE.md) - Setting up GitHub Actions secrets
+- **Docker Username**: [SETUP_DOCKER_USERNAME.md](SETUP_DOCKER_USERNAME.md) - Docker Hub setup
+
 ## 🐳 Docker
 
 ### Build and Run Locally
@@ -163,52 +176,135 @@ GitHub Actions workflow (`.github/workflows/ci-cd.yml`) that:
 
 ### GitLab CI/CD
 
-GitLab CI/CD pipeline (`.gitlab-ci.yml`) that includes:
+This project includes a complete GitLab CI/CD setup with Docker Compose, including:
+- GitLab CE (Community Edition) running locally
+- GitLab Runner for executing CI/CD jobs
+- Artifactory OSS for Docker registry
 
-**Stages:**
+**📖 For complete educational guide, see [GITLAB_CI_CD_SETUP.md](GITLAB_CI_CD_SETUP.md)**
+
+#### Quick Setup
+
+**Option 1: Automated Setup (Recommended)**
+```bash
+make setup
+```
+This will start all services, wait for GitLab to initialize, display the root password, and register the GitLab Runner automatically.
+
+**Option 2: Manual Setup**
+
+1. **Start Services:**
+   ```bash
+   make up
+   ```
+   Wait 2-3 minutes for GitLab to fully initialize.
+
+2. **Get GitLab Root Password:**
+   ```bash
+   make bootstrap
+   ```
+   Save the password shown (it's only displayed once).
+
+3. **Access GitLab:**
+   - Open browser: `http://localhost:8080`
+   - Login with username: `root` and the password from step 2
+   - Create a new project or push your code
+
+4. **Register GitLab Runner:**
+
+   **Step 4a: Get Registration Token from GitLab UI**
+   - In GitLab: Go to **Settings → CI/CD → Runners**
+   - Expand **"Set up a specific runner manually"**
+   - Copy the **Registration Token** (looks like `glrt-xxxxxxxxxxxxxxxxxxxx`)
+   - Note the GitLab URL shown (use `http://gitlab` for internal network)
+
+   **Step 4b: Register the Runner**
+   ```bash
+   make register
+   ```
+   When prompted:
+   - GitLab URL: `http://gitlab` (or `http://localhost:8080`)
+   - Registration Token: (paste the token from Step 4a)
+
+   **Alternative: Manual Registration**
+   ```bash
+   docker exec -it gitlab-runner gitlab-runner register \
+     --url http://gitlab \
+     --registration-token YOUR_TOKEN_HERE \
+     --executor docker \
+     --docker-image docker:24 \
+     --description "docker-runner" \
+     --tag-list "docker,linux" \
+     --run-untagged="true"
+   ```
+
+5. **Verify Runner Registration:**
+   ```bash
+   docker exec gitlab-runner gitlab-runner list
+   ```
+   You should see your runner listed. Also verify in GitLab UI: **Settings → CI/CD → Runners** (should show a green circle).
+
+#### GitLab CI/CD Pipeline
+
+The `.gitlab-ci.yml` defines three stages:
+
 1. **test** – Runs pytest on all branches and merge requests
 2. **build** – Builds Docker image and pushes to GitLab Container Registry
-3. **publish** – Publishes to Docker Hub and Artifactory (on version tags)
+3. **push** – Publishes to Artifactory (optional, manual trigger)
 
-#### Required GitLab CI/CD Variables:
+#### Useful Commands
 
-**Built-in GitLab variables (automatically available):**
+```bash
+make help          # Show all available commands
+make up            # Start all services
+make down          # Stop all services
+make logs          # View logs from all services
+make status        # Check service status
+make bootstrap     # Get GitLab root password
+make register      # Register GitLab Runner
+make clean         # Remove everything (⚠️ deletes all data)
+```
+
+#### Access URLs
+
+- **GitLab:** http://localhost:8080 (username: `root`, password: run `make bootstrap`)
+- **Artifactory:** http://localhost:8081 (username: `admin`, password: `password`)
+- **Artifactory Docker Registry:** http://localhost:8082
+
+#### GitLab CI/CD Variables
+
+**Built-in variables (automatically available):**
 - `CI_REGISTRY_USER`, `CI_REGISTRY_PASSWORD`, `CI_REGISTRY` – GitLab Container Registry
 - `CI_REGISTRY_IMAGE` – Registry image path
 
-**Custom variables to add:**
+**Optional: Configure Artifactory Variables**
 
-**For Docker Hub:**
-- `DOCKERHUB_USERNAME` – Docker Hub username
-- `DOCKERHUB_TOKEN` – Docker Hub Personal Access Token (required - not password)
+If you want to use Artifactory (optional), set these in GitLab: **Settings → CI/CD → Variables**
 
-**How to get Docker Hub token:**
-1. Go to [Docker Hub](https://hub.docker.com) → Account Settings → Security
-2. Click "New Access Token"
-3. Give it a name (e.g., "GitLab CI/CD")
-4. Copy the token immediately
-5. Set permissions: "Read, Write & Delete"
+| Variable | Value | Protected | Masked |
+|----------|-------|-----------|--------|
+| `ARTIFACTORY_USERNAME` | `admin` | ❌ | ❌ |
+| `ARTIFACTORY_PASSWORD` | `password` | ❌ | ✅ |
+| `ARTIFACTORY_URL` | `http://artifactory:8082` | ❌ | ❌ |
+| `ARTIFACTORY_REPO` | `docker-local` | ❌ | ❌ |
 
-**For Artifactory:**
-- `ARTIFACTORY_URL` – Artifactory registry URL
-- `ARTIFACTORY_REPO` – Docker repository name
-- `ARTIFACTORY_USERNAME` – Artifactory username
-- `ARTIFACTORY_PASSWORD` – Artifactory password/API key
+**Note:** First create the `docker-local` repository in Artifactory:
+1. Login to http://localhost:8081 (admin/password)
+2. Go to **Repositories → Add Repositories → Docker**
+3. Name: `docker-local`, Type: Local, Save
 
-#### GitLab Pipeline Behavior:
-- **All branches/tags:** Runs tests and builds image to GitLab registry
-- **Version tags (vX.Y.Z):** Also publishes to Docker Hub and Artifactory
-- **Artifactory publish:** Manual stage (can be triggered from GitLab UI)
-
-#### Setting GitLab Variables:
-Go to: `Settings → CI/CD → Variables` in your GitLab project
+#### Pipeline Behavior:
+- **All branches/tags:** Runs tests and builds image to GitLab Container Registry
+- **Artifactory push:** Manual stage (trigger from GitLab UI → Pipelines)
 
 ### CI/CD Summary
 
 | Platform | Test | Build | Docker Hub | Artifactory | Render Deploy |
 |----------|------|-------|------------|-------------|---------------|
 | GitHub Actions | ✅ All pushes/PRs | ✅ On tags | ✅ On tags | ✅ On tags (optional) | ✅ On main/tags (optional) |
-| GitLab CI/CD | ✅ All branches/MRs | ✅ All branches | ✅ On tags | ✅ On tags (manual) | ❌ |
+| GitLab CI/CD | ✅ All branches/MRs | ✅ All branches | ❌ | ✅ Manual trigger | ❌ |
+
+**Note**: GitLab CI/CD runs locally via Docker Compose with GitLab CE, Runner, and Artifactory. See [GITLAB_CI_CD_SETUP.md](GITLAB_CI_CD_SETUP.md) for detailed educational guide.
 
 ### Testing CI/CD
 
