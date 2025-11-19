@@ -4,8 +4,10 @@ stages:
   - push
 
 variables:
+  # Docker-in-Docker (DinD) configuration
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: "/certs"
+  # Artifactory configuration (uses internal Docker network name)
   ARTIFACTORY_URL: "http://artifactory:8082"
   ARTIFACTORY_REPO: "docker-local"
   IMAGE_NAME: "calculator-app"
@@ -24,18 +26,23 @@ test:
     - branches
     - merge_requests
 
-# Build stage - builds Docker image
+# Build stage - builds Docker image using Docker-in-Docker
 build:
   stage: build
+  # Use Docker-in-Docker image to build Docker images inside CI job
   image: docker:24-dind
   services:
+    # DinD service provides isolated Docker daemon for building images
     - docker:24-dind
   before_script:
+    # Login to GitLab Container Registry (credentials auto-provided by GitLab)
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     - echo "Building Docker image..."
+    # Build image with branch/tag name and latest tag
     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG -t $CI_REGISTRY_IMAGE:latest .
     - echo "Pushing to GitLab Container Registry..."
+    # Push both tags to GitLab's built-in container registry
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
     - docker push $CI_REGISTRY_IMAGE:latest
     - echo "✅ Image built and pushed to GitLab registry!"
@@ -43,15 +50,17 @@ build:
     - branches
     - tags
 
-# Push to Artifactory stage - pushes to Artifactory OSS
+# Push to Artifactory stage - pushes to Artifactory OSS (optional)
 push:artifactory:
   stage: push
   image: docker:24-dind
   services:
     - docker:24-dind
   variables:
+    # Construct full Artifactory image URL
     ARTIFACTORY_FULL_URL: "${ARTIFACTORY_URL}/${ARTIFACTORY_REPO}/${IMAGE_NAME}"
   before_script:
+    # Check if Artifactory credentials are configured (optional step)
     - |
       if [ -z "$ARTIFACTORY_USERNAME" ] || [ -z "$ARTIFACTORY_PASSWORD" ]; then
         echo "⚠️  Artifactory credentials not set. Skipping Artifactory push."
@@ -61,10 +70,13 @@ push:artifactory:
     - echo "$ARTIFACTORY_PASSWORD" | docker login -u "$ARTIFACTORY_USERNAME" --password-stdin "$ARTIFACTORY_URL"
   script:
     - echo "Tagging image for Artifactory..."
+    # Pull image from GitLab registry
     - docker pull $CI_REGISTRY_IMAGE:latest
+    # Tag for Artifactory with branch/tag name and latest
     - docker tag $CI_REGISTRY_IMAGE:latest $ARTIFACTORY_FULL_URL:$CI_COMMIT_REF_SLUG
     - docker tag $CI_REGISTRY_IMAGE:latest $ARTIFACTORY_FULL_URL:latest
     - echo "Pushing to Artifactory..."
+    # Push to Artifactory Docker registry
     - docker push $ARTIFACTORY_FULL_URL:$CI_COMMIT_REF_SLUG
     - docker push $ARTIFACTORY_FULL_URL:latest
     - echo "✅ Image pushed to Artifactory!"
@@ -72,5 +84,7 @@ push:artifactory:
   only:
     - branches
     - tags
+  # Manual stage - must be triggered from GitLab UI
   when: manual
+  # Allow pipeline to succeed even if this step fails (optional step)
   allow_failure: true
